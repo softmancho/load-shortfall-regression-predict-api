@@ -27,9 +27,6 @@ import pandas as pd
 import pickle
 import json
 
-
-
-
 def _preprocess_data(data):
     """Private helper function to preprocess data for model prediction.
 
@@ -50,7 +47,7 @@ def _preprocess_data(data):
     # Convert the json string to a python dictionary object
     feature_vector_dict = json.loads(data)
     # Load the dictionary as a Pandas DataFrame.
-    df = feature_vector_df = pd.DataFrame.from_dict([feature_vector_dict])
+    feature_vector_df = pd.DataFrame.from_dict([feature_vector_dict])
 
     # ---------------------------------------------------------------
     # NOTE: You will need to swap the lines below for your own data
@@ -61,133 +58,13 @@ def _preprocess_data(data):
     # ---------------------------------------------------------------
 
     # ----------- Replace this code with your own preprocessing steps --------
-
-    def split_time(df):
-        #make a copy of the original dataframe
+    feature_vector_df['Valencia_wind_deg'] = feature_vector_df['Valencia_wind_deg'].str.extract('(\d+)')
+    feature_vector_df['Valencia_wind_deg'] = pd.to_numeric(feature_vector_df['Valencia_wind_deg'])
     
-        
-        #Create a DataFrame with Datetime values
-        df['time']=pd.to_datetime(df['time'])
-        
-        #The year of the datetime.
-        df['Year']=df['time'].dt.year
-        
-        #The month as January=1, December=12.
-        df['Month']=df['time'].dt.month
-        
-        #The day of the datetime.
-        df['Day']=df['time'].dt.day
-        
-        #The hours of the datetime.
-        df['Hour']=df['time'].dt.hour
-        
-        #The minutes of the datetime.
-        df['Minute']=df['time'].dt.minute
-        
-        #The day of the week with Monday=0, Sunday=6.
-        df['DayOfWeek']=df['time'].dt.dayofweek
-        
-        #The ordinal day of the year.
-        df['DayOfYear']=df['time'].dt.dayofyear
-        
-        #The quarter of the date.
-        df['Quarter']=df['time'].dt.quarter
-        
-        #drop the time column
-        df.drop(columns='time',axis=1,inplace=True)
-        return df
-
-    def season_of_date(df):
-    #make a copy of the original dataframe
-    
-    
-        for month in df['Month']:
-            
-            #assign winter=1 when 
-            if (month==12 or month <3):
-                df['Winter']=1
-            elif month < 6:
-                df['Spring']=2
-            elif month < 9:
-                df['Summer']=3
-            else:
-                df['Autumn']=4  
-    
-        return df
-    #Since our dataset now have columns for year, and month. 
-    #A good approach to take when replacing the missing values in the valencia_pressure 
-    # columns is to replace with the average reading for the month in which the reading was made
-
-    #- The mean values of the `Valencia_pressure` is aggregated by Year and month
-    #- Missing values are then replaced with the mean of the corresponding month
-
-    def replace_valencia_pressure(df):
-        #make a copy of the original dataframe   
-        df['Valencia_pressure'] = df['Valencia_pressure'].fillna(1016.0)      
-            
-        return df
-
-        #There are several ways to handle categorical variables;
-
-        #- The `handle_categorical_column` function creates dummy variables for each column. 
-        #- The `handle_categorical_column_v2` function simply subsets the string values to portions 
-        # that can be parsed as into numeric values
-
-        #We have both so that we can safely avoid the problem of a data set with too many dimensions 
-        # and not enough data to train the model
-
-    def handle_categorical_column(df, colunmn_name):
-        #make a copy of the original dataframe
-        # extract the numerical value from the columns 
-        df[colunmn_name] = df[colunmn_name].str.extract('(\d+)')
-        df[colunmn_name] = pd.to_numeric(df[colunmn_name])
-        # your code here
-        return df
-
-        ###  4.7.0  Droping noise(unimportant_ columns ) in our dataset
-        # drop any unneccesary column
-
-    def drop_columns(input_df):
-        #make a copy of the original dataframe
-        copy_df = input_df.copy()
-        
-        # columns to drop because of the are indexes and donot contribute to our model performance
-        irrelevant_columns = ['Unnamed: 0','Bilbao_weather_id','Seville_weather_id','Barcelona_weather_id','Barcelona_temp',
-                             'Barcelona_temp_min',
-                             'Bilbao_temp',
-                             'Bilbao_temp_max',
-                             'Madrid_temp',
-                             'Madrid_temp_min',
-                             'Seville_temp_min',
-                             'Valencia_temp',
-                             'Valencia_temp_min']
-        
-        drop_total = irrelevant_columns 
-        copy_df.drop(drop_total,inplace=True, axis=1)
-        return copy_df
-    # feature_vector_df.drop('Unnamed: 0', axis=1, inplace=True)
-    feature_vector_df = split_time(feature_vector_df)
-    # feature_vector_df = season_of_date(feature_vector_df)
-    feature_vector_df = replace_valencia_pressure(feature_vector_df)
-    feature_vector_df = handle_categorical_column(feature_vector_df, colunmn_name = 'Valencia_wind_deg')
-    feature_vector_df = handle_categorical_column(feature_vector_df, colunmn_name ='Seville_pressure')
-    feature_vector_df = drop_columns(feature_vector_df)
-
-
-
-    predict_vector = feature_vector_df[['Madrid_wind_speed', 'Valencia_wind_deg', 'Bilbao_rain_1h',
-       'Valencia_wind_speed', 'Seville_humidity', 'Madrid_humidity',
-       'Bilbao_clouds_all', 'Bilbao_wind_speed', 'Seville_clouds_all',
-       'Bilbao_wind_deg', 'Barcelona_wind_speed', 'Barcelona_wind_deg',
-       'Madrid_clouds_all', 'Seville_wind_speed', 'Barcelona_rain_1h',
-       'Seville_pressure', 'Seville_rain_1h', 'Bilbao_snow_3h',
-       'Barcelona_pressure', 'Seville_rain_3h', 'Madrid_rain_1h',
-       'Barcelona_rain_3h', 'Valencia_snow_3h', 'Madrid_weather_id',
-       'Bilbao_pressure', 'Valencia_pressure', 'Seville_temp_max',
-       'Madrid_pressure', 'Valencia_temp_max', 'Seville_temp',
-       'Valencia_humidity', 'Barcelona_temp_max', 'Madrid_temp_max',
-       'Bilbao_temp_min', 'Year', 'Month', 'Day', 'Hour', 'Minute',
-       'DayOfWeek', 'DayOfYear', 'Quarter']]
+    predict_vector = feature_vector_df[['Madrid_wind_speed', 'Valencia_wind_deg',
+                                        'Bilbao_rain_1h', 'Seville_humidity', 
+                                        'Bilbao_clouds_all','Bilbao_wind_speed',
+                                        'Seville_clouds_all', 'Bilbao_wind_deg']]
     # ------------------------------------------------------------------------
 
     return predict_vector
